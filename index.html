@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pencil Cricket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
+<style>
+  :root{
+    --paper: #e9eef5;
+    --paper-rule: #c3d2e6;
+    --paper-margin: #d98a9b;
+    --ink: #24314a;
+    --ink-soft: #55627c;
+    --accent: #3f7d58;
+    --accent-strong: #2f6446;
+    --accent-contrast: #f5f7fb;
+    --wicket: #a83c2e;
+    --gold: #a1741f;
+    --surface: #f5f7fb;
+    --surface-2: #dfe6f0;
+    --shadow: rgba(36,49,74,0.14);
+    --focus: #2f6446;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper: #1c2430;
+      --paper-rule: #2e3a4c;
+      --paper-margin: #6b4652;
+      --ink: #e8edf5;
+      --ink-soft: #aab6c9;
+      --accent: #6fce93;
+      --accent-strong: #58b47d;
+      --accent-contrast: #16321f;
+      --wicket: #e5786a;
+      --gold: #dcb15c;
+      --surface: #232d3c;
+      --surface-2: #2b3648;
+      --shadow: rgba(0,0,0,0.45);
+      --focus: #6fce93;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper: #1c2430;
+    --paper-rule: #2e3a4c;
+    --paper-margin: #6b4652;
+    --ink: #e8edf5;
+    --ink-soft: #aab6c9;
+    --accent: #6fce93;
+    --accent-strong: #58b47d;
+    --accent-contrast: #16321f;
+    --wicket: #e5786a;
+    --gold: #dcb15c;
+    --surface: #232d3c;
+    --surface-2: #2b3648;
+    --shadow: rgba(0,0,0,0.45);
+    --focus: #6fce93;
+  }
+
+  *{ box-sizing: border-box; }
+  body{
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Work Sans', system-ui, sans-serif;
+    padding: 32px 16px 64px;
+    min-height: 100vh;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0px, transparent 31px,
+      var(--paper-rule) 31px, var(--paper-rule) 32px
+    );
+    background-position: 0 96px;
+  }
+  h1,h2,h3{ font-family: 'Kalam', cursive; font-weight: 700; text-wrap: balance; margin: 0; }
+  .page{
+    max-width: 760px;
+    margin: 0 auto;
+    position: relative;
+    padding-left: 28px;
+  }
+  .page::before{
+    content: "";
+    position: absolute;
+    left: 14px; top: -8px; bottom: -8px;
+    width: 2px;
+    background: var(--paper-margin);
+    opacity: .55;
+  }
+  header.masthead{
+    text-align: center;
+    padding: 8px 0 20px;
+  }
+  header.masthead h1{
+    font-size: clamp(2.3rem, 6vw, 3.4rem);
+    color: var(--ink);
+    letter-spacing: .5px;
+  }
+  header.masthead .underline{
+    display: block;
+    width: min(320px, 70%);
+    margin: 2px auto 10px;
+  }
+  header.masthead .underline path{
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 5;
+    stroke-linecap: round;
+  }
+  header.masthead p{
+    font-size: .95rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .rules-tab{
+    position: fixed;
+    top: 18px; right: 18px;
+    font-family: 'Kalam', cursive;
+    font-weight: 700;
+    font-size: .95rem;
+    background: var(--surface);
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    border-radius: 8px 8px 0 10px;
+    padding: 6px 14px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--shadow);
+    transform: rotate(-2deg);
+    z-index: 20;
+  }
+  .rules-tab:hover{ transform: rotate(0deg); }
+
+  .card{
+    background: var(--surface);
+    border: 2px solid var(--ink);
+    border-radius: 4px 14px 4px 14px;
+    box-shadow: 4px 4px 0 var(--shadow);
+    padding: 24px clamp(16px,4vw,32px);
+    margin-bottom: 22px;
+  }
+  .card h2{ font-size: 1.5rem; margin-bottom: 4px; }
+  .card .sub{ color: var(--ink-soft); font-size: .9rem; margin-bottom: 18px; }
+
+  .field{ margin-bottom: 18px; }
+  .field label{
+    display:block; font-size: .78rem; text-transform: uppercase; letter-spacing: .09em;
+    color: var(--ink-soft); margin-bottom: 6px; font-weight: 600;
+  }
+  .field input[type="text"], .field input[type="number"]{
+    width: 100%;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 1rem;
+    padding: 10px 12px;
+    border: 2px solid var(--paper-rule);
+    border-radius: 8px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .field input:focus{ outline: 2px solid var(--focus); outline-offset: 1px; }
+  .chip-row{ display:flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .chip{
+    font-family: 'Space Mono', monospace;
+    font-size: .9rem;
+    border: 2px solid var(--paper-rule);
+    background: var(--paper);
+    color: var(--ink);
+    padding: 7px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+  .chip[aria-pressed="true"]{
+    background: var(--accent);
+    border-color: var(--accent-strong);
+    color: var(--accent-contrast);
+    font-weight: 700;
+  }
+  .chip-row input[type="number"]{
+    width: 92px;
+    font-family: 'Space Mono', monospace;
+    padding: 6px 8px;
+    border: 2px solid var(--paper-rule);
+    border-radius: 20px;
+    background: var(--paper);
+    color: var(--ink);
+    text-align: center;
+  }
+
+  .btn{
+    font-family: 'Kalam', cursive;
+    font-weight: 700;
+    font-size: 1.05rem;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border: 2px solid var(--accent-strong);
+    border-radius: 10px;
+    padding: 12px 26px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--shadow);
+  }
+  .btn:hover{ transform: translateY(-1px); }
+  .btn:active{ transform: translateY(1px); box-shadow: 1px 1px 0 var(--shadow); }
+  .btn.secondary{
+    background: var(--surface);
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+  .btn.wide{ width: 100%; text-align:center; }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; }
+  .btn-row{ display:flex; gap: 12px; flex-wrap: wrap; }
+
+  /* Scoreboard */
+  .scoreboard{
+    display:flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+    border-bottom: 2px dashed var(--paper-rule);
+    padding-bottom: 14px; margin-bottom: 16px;
+  }
+  .scoreboard .team-name{ font-family:'Kalam',cursive; font-size:1.3rem; }
+  .scoreboard .figures{
+    font-family: 'Space Mono', monospace;
+    font-size: 2.1rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .scoreboard .figures .wk{ color: var(--wicket); }
+  .scoreboard .meta{
+    font-family: 'Space Mono', monospace;
+    font-size: .82rem;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .target-strip{
+    font-family: 'Space Mono', monospace;
+    font-size: .85rem;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+
+  .dice-zone{
+    display:flex; flex-direction: column; align-items:center; gap: 16px;
+    padding: 18px 0 6px;
+  }
+  .dice-pair{ display:flex; gap: 18px; }
+  .die{
+    width: 68px; height: 68px;
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: 12px;
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    grid-template-rows: repeat(3,1fr);
+    padding: 10px;
+    box-shadow: 3px 3px 0 var(--shadow);
+  }
+  .die.rolling{ animation: wobble .28s ease-in-out infinite; }
+  @keyframes wobble{
+    0%{ transform: rotate(-6deg); } 50%{ transform: rotate(6deg); } 100%{ transform: rotate(-6deg); }
+  }
+  .pip{
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: var(--ink);
+    opacity: 0;
+    justify-self: center; align-self: center;
+  }
+  .die[data-value="1"] .pip[data-pos="5"]{ opacity:1; }
+  .die[data-value="2"] .pip[data-pos="3"], .die[data-value="2"] .pip[data-pos="7"]{ opacity:1; }
+  .die[data-value="3"] .pip[data-pos="3"], .die[data-value="3"] .pip[data-pos="5"], .die[data-value="3"] .pip[data-pos="7"]{ opacity:1; }
+  .die[data-value="4"] .pip[data-pos="1"], .die[data-value="4"] .pip[data-pos="3"], .die[data-value="4"] .pip[data-pos="7"], .die[data-value="4"] .pip[data-pos="9"]{ opacity:1; }
+  .die[data-value="5"] .pip[data-pos="1"], .die[data-value="5"] .pip[data-pos="3"], .die[data-value="5"] .pip[data-pos="5"], .die[data-value="5"] .pip[data-pos="7"], .die[data-value="5"] .pip[data-pos="9"]{ opacity:1; }
+  .die[data-value="6"] .pip[data-pos="1"], .die[data-value="6"] .pip[data-pos="3"], .die[data-value="6"] .pip[data-pos="4"], .die[data-value="6"] .pip[data-pos="6"], .die[data-value="6"] .pip[data-pos="7"], .die[data-value="6"] .pip[data-pos="9"]{ opacity:1; }
+
+  .ball-readout{
+    min-height: 2.4em;
+    text-align:center;
+    font-family: 'Kalam', cursive;
+    font-size: 1.25rem;
+  }
+  .ball-readout .runs{ color: var(--accent-strong); }
+  .ball-readout .out{ color: var(--wicket); }
+  .ball-readout .boundary{ color: var(--gold); }
+
+  .over-track{
+    display:flex; gap: 6px; flex-wrap: wrap; justify-content:center; margin: 14px 0 4px;
+  }
+  .over-track .ball{
+    width: 30px; height: 30px;
+    border: 2px solid var(--paper-rule);
+    border-radius: 6px;
+    display:flex; align-items:center; justify-content:center;
+    font-family: 'Space Mono', monospace; font-size: .82rem; font-weight:700;
+    background: var(--paper);
+    color: var(--ink-soft);
+  }
+  .over-track .ball.played{ color: var(--ink); border-color: var(--ink); }
+  .over-track .ball.wicket{ color: #fff; background: var(--wicket); border-color: var(--wicket); }
+  .over-track .ball.boundary{ color: var(--accent-contrast); background: var(--gold); border-color: var(--gold); }
+  .over-track .ball.pending{ opacity: .4; }
+
+  details.log{
+    margin-top: 6px;
+  }
+  details.log summary{
+    cursor:pointer; font-family:'Kalam',cursive; font-size: 1rem; color: var(--ink-soft);
+  }
+  .log-table{
+    width: 100%; border-collapse: collapse; margin-top: 10px;
+    font-family:'Space Mono',monospace; font-size: .82rem;
+  }
+  .log-table th, .log-table td{
+    text-align:left; padding: 4px 8px; border-bottom: 1px solid var(--paper-rule);
+  }
+  .log-table tr.wicket-row td{ color: var(--wicket); }
+  .log-wrap{ max-height: 220px; overflow-y:auto; }
+
+  .stamp{
+    display:inline-block;
+    max-width: 100%;
+    border: 4px solid var(--wicket);
+    color: var(--wicket);
+    border-radius: 50px;
+    padding: 14px 26px;
+    font-family:'Kalam',cursive;
+    font-weight:700;
+    font-size: clamp(1rem, 4.5vw, 1.4rem);
+    line-height: 1.2;
+    transform: rotate(-6deg);
+    margin: 6px auto 18px;
+  }
+  .result-center{ text-align:center; }
+
+  .innings-summary-table{
+    width:100%; border-collapse:collapse; font-family:'Space Mono',monospace; font-size:.88rem;
+    margin-top: 10px;
+  }
+  .innings-summary-table th, .innings-summary-table td{
+    padding: 8px 10px; border-bottom: 1px solid var(--paper-rule); text-align:left;
+  }
+  .innings-summary-table td.num, .innings-summary-table th.num{ text-align:right; font-variant-numeric: tabular-nums; }
+
+  dialog{
+    max-width: 520px; width: 92vw;
+    border: 2px solid var(--ink);
+    border-radius: 4px 16px 4px 16px;
+    padding: 0;
+    color: var(--ink);
+    background: var(--surface);
+  }
+  dialog::backdrop{ background: rgba(20,26,38,.5); }
+  .dialog-inner{ padding: 22px 24px; }
+  .dialog-inner h3{ font-size: 1.4rem; margin-bottom: 10px; }
+  .dialog-inner ul{ padding-left: 20px; line-height: 1.55; }
+  .dialog-inner .close-row{ text-align:right; margin-top: 14px; }
+
+  footer.note{
+    text-align:center; font-size: .78rem; color: var(--ink-soft); margin-top: 8px;
+  }
+
+  @media (max-width: 480px){
+    .scoreboard{ align-items: flex-start; }
+    .scoreboard .figures{ font-size: 1.7rem; }
+    .die{ width: 56px; height: 56px; }
+  }
+</style>
+</head>
+<body>
+<button class="rules-tab" onclick="document.getElementById('rulesDialog').showModal()">Rules</button>
+<div class="page">
+  <header class="masthead">
+    <h1>Pencil Cricket</h1>
+    <svg class="underline" viewBox="0 0 320 14" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M4 9 C 60 2, 120 13, 160 7 S 260 1, 316 8" />
+    </svg>
+    <p>Two dice, six balls an over — a full match on the back page of an exercise book.</p>
+  </header>
+  <main id="app"></main>
+  <footer class="note">Pass the device between overs. No actual pencils were harmed.</footer>
+</div>
+
+<dialog id="rulesDialog">
+  <div class="dialog-inner">
+    <h3>How a ball is bowled</h3>
+    <ul>
+      <li>Every ball, both dice are rolled.</li>
+      <li><strong>Matching numbers</strong> (a double) is a wicket. Which dismissal depends on the number: 1&nbsp;=&nbsp;Caught, 2&nbsp;=&nbsp;Stumped, 3&nbsp;=&nbsp;Run Out, 4&nbsp;=&nbsp;LBW, 5&nbsp;=&nbsp;Caught &amp; Bowled, 6&nbsp;=&nbsp;Bowled.</li>
+      <li><strong>Different numbers</strong> score runs equal to the sum of the two dice (3 to 11).</li>
+      <li>A sum of 9 or 10 is called as a Boundary (FOUR); a sum of 11 — the highest possible — is a Maximum (SIX).</li>
+      <li>Six balls make an over.</li>
+      <li>The team batting first sets a target. The second team wins by reaching it before running out of overs or wickets; otherwise the higher score wins. Equal scores is a Tie.</li>
+    </ul>
+    <div class="close-row"><button class="btn secondary" onclick="document.getElementById('rulesDialog').close()">Close</button></div>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  "use strict";
+
+  var DISMISSAL = {1:"Caught!", 2:"Stumped!", 3:"Run Out!", 4:"LBW!", 5:"Caught &amp; Bowled!", 6:"Bowled!"};
+
+  function defaultState(){
+    return {
+      screen: "cover",
+      teamA: "", teamB: "",
+      oversCustomDraft: "", wicketsCustomDraft: "",
+      overs: 5, wickets: 2,
+      tossWinner: null, tossChoice: null,
+      battingFirstTeam: null,
+      innings: 1,
+      current: null,
+      firstInningsSummary: null,
+      target: null
+    };
+  }
+
+  var state = defaultState();
+
+  function saveState(){
+    try{ localStorage.setItem("pencilCricketMatch", JSON.stringify(state)); }catch(e){}
+  }
+  function loadState(){
+    try{
+      var raw = localStorage.getItem("pencilCricketMatch");
+      if(raw){ var parsed = JSON.parse(raw); if(parsed && parsed.screen){ return parsed; } }
+    }catch(e){}
+    return null;
+  }
+  function clearSaved(){
+    try{ localStorage.removeItem("pencilCricketMatch"); }catch(e){}
+  }
+
+  function rollDie(){ return 1 + Math.floor(Math.random()*6); }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  function teamName(key){ return key === "A" ? (state.teamA || "Team A") : (state.teamB || "Team B"); }
+  function other(key){ return key === "A" ? "B" : "A"; }
+
+  function newInnings(battingTeam){
+    return {
+      battingTeam: battingTeam,
+      runs: 0, wickets: 0, ballsBowled: 0,
+      log: [],
+      lastBall: null,
+      done: false
+    };
+  }
+
+  function oversDisplay(balls){
+    return Math.floor(balls/6) + "." + (balls % 6);
+  }
+
+  function bowlBall(){
+    if(!state.current || state.current.done) return;
+    var app = document.getElementById("app");
+    var dieEls = app.querySelectorAll(".die");
+    dieEls.forEach(function(d){ d.classList.add("rolling"); });
+    var bowlBtn = document.getElementById("bowlBtn");
+    if(bowlBtn) bowlBtn.disabled = true;
+
+    var ticks = 0;
+    var spin = setInterval(function(){
+      ticks++;
+      dieEls.forEach(function(d){ d.setAttribute("data-value", rollDie()); });
+      if(ticks >= 7){
+        clearInterval(spin);
+        settleBall();
+      }
+    }, 70);
+  }
+
+  function settleBall(){
+    var d1 = rollDie(), d2 = rollDie();
+    var cur = state.current;
+    var over = Math.floor(cur.ballsBowled/6) + 1;
+    var ballInOver = (cur.ballsBowled % 6) + 1;
+    var entry = { over: over, ball: ballInOver, d1: d1, d2: d2 };
+
+    if(d1 === d2){
+      cur.wickets++;
+      entry.wicket = true;
+      entry.dismissal = DISMISSAL[d1];
+      entry.text = d1 + "-" + d2 + " — " + DISMISSAL[d1].replace("!","");
+    } else {
+      var runs = d1 + d2;
+      cur.runs += runs;
+      entry.runs = runs;
+      if(runs === 11){ entry.boundaryLabel = "SIX!"; }
+      else if(runs === 9 || runs === 10){ entry.boundaryLabel = "FOUR!"; }
+      entry.text = d1 + " + " + d2 + " = " + runs + (entry.boundaryLabel ? " — " + entry.boundaryLabel : "");
+    }
+    cur.ballsBowled++;
+    cur.log.push(entry);
+    cur.lastBall = entry;
+
+    checkInningsEnd();
+    saveState();
+    render();
+  }
+
+  function checkInningsEnd(){
+    var cur = state.current;
+    var maxBalls = state.overs * 6;
+    var allOut = cur.wickets >= state.wickets;
+    var oversUp = cur.ballsBowled >= maxBalls;
+    var chased = state.innings === 2 && state.target !== null && cur.runs >= state.target;
+
+    if(allOut || oversUp || chased){
+      cur.done = true;
+      if(state.innings === 1){
+        state.firstInningsSummary = {
+          team: cur.battingTeam, runs: cur.runs, wickets: cur.wickets, balls: cur.ballsBowled
+        };
+        state.target = cur.runs + 1;
+        state.screen = "break";
+      } else {
+        state.screen = "result";
+      }
+    }
+  }
+
+  function startSecondInnings(){
+    state.innings = 2;
+    var bowlingFirstTeam = other(state.battingFirstTeam);
+    state.current = newInnings(bowlingFirstTeam);
+    state.screen = "match";
+    saveState();
+    render();
+  }
+
+  function startNewMatch(){
+    state = defaultState();
+    clearSaved();
+    render();
+  }
+
+  function goSetup(){
+    state.screen = "setup";
+    render();
+  }
+
+  function setOvers(n){ state.overs = n; render(); }
+  function setWickets(n){ state.wickets = n; render(); }
+  function setTeamA(v){ state.teamA = v; }
+  function setTeamB(v){ state.teamB = v; }
+  function setOversCustom(v){ state.oversCustomDraft = v; }
+  function setWicketsCustom(v){ state.wicketsCustomDraft = v; }
+
+  function confirmSetup(){
+    state.teamA = (state.teamA || "Team A").trim() || "Team A";
+    state.teamB = (state.teamB || "Team B").trim() || "Team B";
+    if(state.oversCustomDraft) state.overs = Math.max(1, Math.min(50, parseInt(state.oversCustomDraft,10) || state.overs));
+    if(state.wicketsCustomDraft) state.wickets = Math.max(1, Math.min(10, parseInt(state.wicketsCustomDraft,10) || state.wickets));
+    state.screen = "toss";
+    render();
+  }
+
+  function flipCoin(){
+    state.tossWinner = Math.random() < 0.5 ? "A" : "B";
+    render();
+  }
+
+  function chooseToss(choice){
+    state.tossChoice = choice;
+    var battingTeam = choice === "bat" ? state.tossWinner : other(state.tossWinner);
+    state.battingFirstTeam = battingTeam;
+    state.innings = 1;
+    state.current = newInnings(battingTeam);
+    state.screen = "match";
+    saveState();
+    render();
+  }
+
+  function render(){
+    var app = document.getElementById("app");
+    app.innerHTML = renderScreen();
+  }
+
+  function renderScreen(){
+    switch(state.screen){
+      case "setup": return renderSetup();
+      case "toss": return renderToss();
+      case "match": return renderMatch();
+      case "break": return renderBreak();
+      case "result": return renderResult();
+      default: return renderCover();
+    }
+  }
+
+  function renderCover(){
+    var saved = loadState();
+    var resumeBtn = "";
+    if(saved && (saved.screen === "match" || saved.screen === "break")){
+      resumeBtn = '<button class="btn secondary" onclick="window.__pc.resume()">Resume Match</button>';
+    }
+    return (
+      '<div class="card result-center">' +
+        '<h2>Start a match</h2>' +
+        '<p class="sub">Two players, one device. Set your teams, pick the overs, and let the dice do the bowling.</p>' +
+        '<div class="btn-row" style="justify-content:center">' +
+          '<button class="btn" onclick="window.__pc.goSetup()">New Match</button>' +
+          resumeBtn +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function renderSetup(){
+    var overChips = [2,5,10,20].map(function(n){
+      return '<button class="chip" aria-pressed="'+(state.overs===n)+'" onclick="window.__pc.setOvers('+n+')">'+n+' overs</button>';
+    }).join("");
+    var wicketChips = [1,2,3,5].map(function(n){
+      return '<button class="chip" aria-pressed="'+(state.wickets===n)+'" onclick="window.__pc.setWickets('+n+')">'+n+' wkt'+(n>1?"s":"")+'</button>';
+    }).join("");
+    return (
+      '<div class="card">' +
+        '<h2>Fill in the scorebook cover</h2>' +
+        '<p class="sub">Name your two teams and set the terms of the match.</p>' +
+        '<div class="field">' +
+          '<label for="teamAInput">Team batting order slot A</label>' +
+          '<input type="text" id="teamAInput" placeholder="Team A" value="'+esc(state.teamA)+'" maxlength="24" oninput="window.__pc.setTeamA(this.value)" />' +
+        '</div>' +
+        '<div class="field">' +
+          '<label for="teamBInput">Team batting order slot B</label>' +
+          '<input type="text" id="teamBInput" placeholder="Team B" value="'+esc(state.teamB)+'" maxlength="24" oninput="window.__pc.setTeamB(this.value)" />' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Overs per innings</label>' +
+          '<div class="chip-row">' + overChips +
+            '<input type="number" id="oversCustom" placeholder="custom" min="1" max="50" value="'+esc(state.oversCustomDraft)+'" oninput="window.__pc.setOversCustom(this.value)" />' +
+          '</div>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Wickets per innings</label>' +
+          '<div class="chip-row">' + wicketChips +
+            '<input type="number" id="wicketsCustom" placeholder="custom" min="1" max="10" value="'+esc(state.wicketsCustomDraft)+'" oninput="window.__pc.setWicketsCustom(this.value)" />' +
+          '</div>' +
+        '</div>' +
+        '<button class="btn wide" onclick="window.__pc.confirmSetup()">Go to the Toss</button>' +
+      '</div>'
+    );
+  }
+
+  function renderToss(){
+    var body;
+    if(!state.tossWinner){
+      body =
+        '<p class="sub">Flip the coin to see who calls the shots.</p>' +
+        '<button class="btn wide" onclick="window.__pc.flipCoin()">Flip Coin</button>';
+    } else if(!state.tossChoice){
+      body =
+        '<p class="sub"><strong>'+esc(teamName(state.tossWinner))+'</strong> won the toss.</p>' +
+        '<div class="btn-row">' +
+          '<button class="btn" onclick="window.__pc.chooseToss(\'bat\')">Bat First</button>' +
+          '<button class="btn secondary" onclick="window.__pc.chooseToss(\'bowl\')">Bowl First</button>' +
+        '</div>';
+    }
+    return '<div class="card result-center"><h2>The Toss</h2>' + body + '</div>';
+  }
+
+  function renderDiceHTML(d1, d2){
+    d1 = d1 || 1; d2 = d2 || 1;
+    function pips(){
+      var out = "";
+      for(var i=1;i<=9;i++){ out += '<span class="pip" data-pos="'+i+'"></span>'; }
+      return out;
+    }
+    return (
+      '<div class="dice-pair">' +
+        '<div class="die" data-value="'+d1+'">' + pips() + '</div>' +
+        '<div class="die" data-value="'+d2+'">' + pips() + '</div>' +
+      '</div>'
+    );
+  }
+
+  function renderOverTrack(cur){
+    var ballsInCurrentOver = cur.ballsBowled % 6;
+    var cells = [];
+    var startIdx = cur.ballsBowled - ballsInCurrentOver;
+    for(var i=0;i<6;i++){
+      var ballIdx = startIdx + i;
+      var entry = cur.log[ballIdx];
+      if(entry){
+        var cls = "ball played" + (entry.wicket ? " wicket" : (entry.boundaryLabel ? " boundary" : ""));
+        var label = entry.wicket ? "W" : entry.runs;
+        cells.push('<div class="'+cls+'">'+label+'</div>');
+      } else {
+        cells.push('<div class="ball pending">&middot;</div>');
+      }
+    }
+    return '<div class="over-track">' + cells.join("") + '</div>';
+  }
+
+  function renderLogTable(cur){
+    if(cur.log.length === 0){
+      return '<p class="sub">No balls bowled yet.</p>';
+    }
+    var rows = cur.log.slice().reverse().map(function(e){
+      var rowClass = e.wicket ? ' class="wicket-row"' : "";
+      var resultText = e.wicket ? e.dismissal : (e.runs + (e.boundaryLabel ? " — " + e.boundaryLabel : ""));
+      return '<tr'+rowClass+'><td>'+e.over+'.'+e.ball+'</td><td>'+e.d1+'-'+e.d2+'</td><td>'+resultText+'</td></tr>';
+    }).join("");
+    return (
+      '<div class="log-wrap"><table class="log-table"><thead><tr><th>Ball</th><th>Dice</th><th>Result</th></tr></thead><tbody>' +
+        rows +
+      '</tbody></table></div>'
+    );
+  }
+
+  function renderMatch(){
+    var cur = state.current;
+    var battingName = teamName(cur.battingTeam);
+    var bowlingName = teamName(other(cur.battingTeam));
+    var maxBalls = state.overs * 6;
+    var runRate = cur.ballsBowled > 0 ? (cur.runs / (cur.ballsBowled/6)).toFixed(2) : "0.00";
+
+    var targetStrip = "";
+    if(state.innings === 2 && state.target !== null){
+      var required = state.target - cur.runs;
+      var ballsLeft = maxBalls - cur.ballsBowled;
+      var reqRate = ballsLeft > 0 ? (required / (ballsLeft/6)).toFixed(2) : "—";
+      targetStrip = '<div class="target-strip">Target ' + state.target + ' &middot; need ' +
+        Math.max(required,0) + ' from ' + ballsLeft + ' ball' + (ballsLeft===1?"":"s") +
+        ' &middot; req. rate ' + reqRate + '</div>';
+    }
+
+    var readout = "";
+    if(cur.lastBall){
+      var lb = cur.lastBall;
+      if(lb.wicket){
+        readout = '<span class="out">' + lb.d1 + '-' + lb.d2 + ' — ' + lb.dismissal + '</span>';
+      } else if(lb.boundaryLabel){
+        readout = '<span class="boundary">' + lb.d1 + ' + ' + lb.d2 + ' = ' + lb.runs + ' — ' + lb.boundaryLabel + '</span>';
+      } else {
+        readout = '<span class="runs">' + lb.d1 + ' + ' + lb.d2 + ' = ' + lb.runs + ' run' + (lb.runs===1?"":"s") + '</span>';
+      }
+    } else {
+      readout = '<span>Tap Bowl to start the innings.</span>';
+    }
+
+    var dice = cur.lastBall ? renderDiceHTML(cur.lastBall.d1, cur.lastBall.d2) : renderDiceHTML(1,1);
+
+    return (
+      '<div class="card">' +
+        '<div class="scoreboard">' +
+          '<div>' +
+            '<div class="team-name">' + esc(battingName) + ' <span style="color:var(--ink-soft);font-weight:400;font-size:.85rem">batting</span></div>' +
+            '<div class="meta">vs ' + esc(bowlingName) + '</div>' +
+          '</div>' +
+          '<div style="text-align:right">' +
+            '<div class="figures">' + cur.runs + '<span class="wk">/' + cur.wickets + '</span></div>' +
+            '<div class="meta">' + oversDisplay(cur.ballsBowled) + ' / ' + state.overs + ' overs &middot; RR ' + runRate + '</div>' +
+          '</div>' +
+        '</div>' +
+        targetStrip +
+        '<div class="dice-zone">' +
+          dice +
+          '<div class="ball-readout">' + readout + '</div>' +
+          '<button class="btn" id="bowlBtn" onclick="window.__pc.bowlBall()">Bowl</button>' +
+        '</div>' +
+        renderOverTrack(cur) +
+        '<details class="log"><summary>Ball-by-ball</summary>' + renderLogTable(cur) + '</details>' +
+      '</div>'
+    );
+  }
+
+  function renderBreak(){
+    var s = state.firstInningsSummary;
+    var chasingTeam = other(s.team);
+    return (
+      '<div class="card result-center">' +
+        '<h2>End of the first innings</h2>' +
+        '<p class="sub">' + esc(teamName(s.team)) + ' finished on <strong>' + s.runs + '/' + s.wickets +
+          '</strong> from ' + oversDisplay(s.balls) + ' overs.</p>' +
+        '<p class="sub"><strong>' + esc(teamName(chasingTeam)) + '</strong> needs <strong>' + state.target +
+          '</strong> runs from ' + (state.overs*6) + ' balls to win.</p>' +
+        '<button class="btn wide" onclick="window.__pc.startSecondInnings()">Start Second Innings</button>' +
+      '</div>'
+    );
+  }
+
+  function renderResult(){
+    var s1 = state.firstInningsSummary;
+    var cur = state.current;
+    var team1 = s1.team, team2 = cur.battingTeam;
+    var r1 = s1.runs, r2 = cur.runs;
+    var resultLine, stampText;
+
+    if(r2 >= state.target){
+      var wicketsLeft = state.wickets - cur.wickets;
+      resultLine = esc(teamName(team2)) + " win by " + wicketsLeft + " wicket" + (wicketsLeft===1?"":"s") + ".";
+      stampText = teamName(team2).toUpperCase() + " WIN";
+    } else if(r2 === r1){
+      resultLine = "Scores level — it's a Tie.";
+      stampText = "TIE";
+    } else {
+      var margin = r1 - r2;
+      resultLine = esc(teamName(team1)) + " win by " + margin + " run" + (margin===1?"":"s") + ".";
+      stampText = teamName(team1).toUpperCase() + " WIN";
+    }
+
+    return (
+      '<div class="card result-center">' +
+        '<h2>Match Result</h2>' +
+        '<div class="stamp">' + esc(stampText) + '</div>' +
+        '<p class="sub" style="font-size:1.05rem;color:var(--ink)">' + resultLine + '</p>' +
+        '<table class="innings-summary-table">' +
+          '<thead><tr><th>Innings</th><th class="num">Score</th><th class="num">Overs</th></tr></thead>' +
+          '<tbody>' +
+            '<tr><td>' + esc(teamName(team1)) + '</td><td class="num">' + s1.runs + '/' + s1.wickets + '</td><td class="num">' + oversDisplay(s1.balls) + '</td></tr>' +
+            '<tr><td>' + esc(teamName(team2)) + '</td><td class="num">' + cur.runs + '/' + cur.wickets + '</td><td class="num">' + oversDisplay(cur.ballsBowled) + '</td></tr>' +
+          '</tbody>' +
+        '</table>' +
+        '<div class="btn-row" style="justify-content:center;margin-top:18px">' +
+          '<button class="btn" onclick="window.__pc.startNewMatch()">Play Again</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  window.__pc = {
+    goSetup: goSetup,
+    confirmSetup: confirmSetup,
+    setOvers: setOvers,
+    setWickets: setWickets,
+    setTeamA: setTeamA,
+    setTeamB: setTeamB,
+    setOversCustom: setOversCustom,
+    setWicketsCustom: setWicketsCustom,
+    flipCoin: flipCoin,
+    chooseToss: chooseToss,
+    bowlBall: bowlBall,
+    startSecondInnings: startSecondInnings,
+    startNewMatch: startNewMatch,
+    resume: function(){
+      var saved = loadState();
+      if(saved){ state = saved; render(); }
+    }
+  };
+
+  function start(savedData){
+    var restored = null;
+    if(savedData && savedData.state){ restored = savedData.state; }
+    if(!restored){ restored = loadState(); }
+    state = restored || defaultState();
+    render();
+  }
+
+  try{
+    if(window.claude && window.claude.hot){
+      window.claude.hot.snapshot(function(){ return { state: state }; });
+      if(window.claude.hot.ready){
+        window.claude.hot.ready(start);
+      } else {
+        start(window.claude.hot.data);
+      }
+    } else {
+      start();
+    }
+  }catch(e){
+    start();
+  }
+})();
+</script>
+</body>
+</html>
