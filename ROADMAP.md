@@ -14,3 +14,12 @@ Ideas for Pencil Cricket that aren't built yet.
       alongside the existing no-ball, for more realistic scoring variance.
       Offer it as a format choice at setup, alongside "Classic" and "Limit
       overs", rather than replacing the single-die Owzthat default.
+      Working idea: sum-of-two-dice determines the outcome (36 equally
+      likely combinations across sums 2–12, e.g. sum 4 = Four, sum 6 = Six,
+      with the other 9 sums covering dot balls, 1s, 2s, 3s, extras, and the
+      OWZTHAT appeal). Open question, needs more thought: the sum
+      distribution is a bell curve peaking at 7, so sum 6 (5/36 combos) is
+      naturally more frequent than sum 4 (3/36) — backwards from real
+      cricket where fours are commoner than sixes. Decide whether to keep
+      the mapping as-is, swap which sum represents four vs six, or not
+      worry about matching real-world frequency at all.
