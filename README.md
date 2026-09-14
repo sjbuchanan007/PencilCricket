@@ -1,7 +1,7 @@
 # Pencil Cricket
 
-A two-dice, pass-and-play version of the classic paper-and-pencil cricket game.
-No installation, no build step — it's a single self-contained HTML file.
+A two-dice, pass-and-play cricket game for the browser. No installation, no
+build step — it's a single self-contained HTML file.
 
 ## Play it
 
@@ -15,20 +15,23 @@ then visit `http://localhost:8000`.
 
 ## Rules
 
-Every ball, both dice are rolled.
+The batting side rolls the **Batting Die**: 1, 2, 3, 4, 6, or **OWZTHAT**.
 
-- **Matching numbers** (a double) is a wicket. The dismissal depends on the
-  number rolled: 1 = Caught, 2 = Stumped, 3 = Run Out, 4 = LBW,
-  5 = Caught & Bowled, 6 = Bowled.
-- **Different numbers** score runs equal to the sum of the two dice (3–11).
-  A sum of 9 or 10 is a Boundary (FOUR); 11, the highest possible, is a
-  Maximum (SIX).
-- Six balls make an over.
-- The team batting first sets a target. The second team wins by reaching it
-  before running out of overs or wickets; otherwise the higher score wins.
-  Equal scores is a Tie.
+- A number is runs scored off that ball — play carries straight on. A 4 is a
+  Boundary (FOUR); a 6 is a Maximum (SIX).
+- **OWZTHAT** is an appeal. The bowling side rolls the **Bowling Die** to
+  answer it: Bowled, Stumped, Caught, Not Out, No Ball, or L.B.W.
+  - **Not Out** — the appeal fails, no runs, batting continues.
+  - **No Ball** — the appeal fails and the batting side gets 1 run.
+  - Anything else (Bowled, Stumped, Caught, L.B.W.) is a wicket.
+- An innings ends when the wicket limit falls (10, by default). Each side
+  bats one innings; the higher score wins. Equal scores is a Tie.
+- There's no built-in over limit — the "Limit overs" format at setup adds
+  one as an optional house rule for a fixed-length match instead of playing
+  to all out.
 
-Overs per innings and wickets per innings are configurable at match setup.
+Rules adapted from *Owzthat*, the dice cricket game invented by Lindop's in
+1924 and patented in 1932.
 
 ## Notes
 

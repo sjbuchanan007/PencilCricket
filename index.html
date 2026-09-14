@@ -240,35 +240,36 @@
     display:flex; flex-direction: column; align-items:center; gap: 16px;
     padding: 18px 0 6px;
   }
-  .dice-pair{ display:flex; gap: 18px; }
+  .dice-pair{ display:flex; gap: 22px; }
+  .die-slot{ display:flex; flex-direction:column; align-items:center; gap: 6px; }
+  .die-label{
+    font-family:'Space Mono', monospace;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-soft);
+  }
   .die{
-    width: 68px; height: 68px;
+    min-width: 108px; height: 76px;
+    padding: 6px 12px;
     background: var(--paper);
     border: 3px solid var(--ink);
     border-radius: 12px;
-    display: grid;
-    grid-template-columns: repeat(3,1fr);
-    grid-template-rows: repeat(3,1fr);
-    padding: 10px;
+    display:flex; align-items:center; justify-content:center;
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: clamp(.95rem, 3vw, 1.3rem);
+    line-height: 1.15;
+    color: var(--ink);
     box-shadow: 3px 3px 0 var(--shadow);
   }
   .die.rolling{ animation: wobble .28s ease-in-out infinite; }
   @keyframes wobble{
     0%{ transform: rotate(-6deg); } 50%{ transform: rotate(6deg); } 100%{ transform: rotate(-6deg); }
   }
-  .pip{
-    width: 11px; height: 11px;
-    border-radius: 50%;
-    background: var(--ink);
-    opacity: 0;
-    justify-self: center; align-self: center;
-  }
-  .die[data-value="1"] .pip[data-pos="5"]{ opacity:1; }
-  .die[data-value="2"] .pip[data-pos="3"], .die[data-value="2"] .pip[data-pos="7"]{ opacity:1; }
-  .die[data-value="3"] .pip[data-pos="3"], .die[data-value="3"] .pip[data-pos="5"], .die[data-value="3"] .pip[data-pos="7"]{ opacity:1; }
-  .die[data-value="4"] .pip[data-pos="1"], .die[data-value="4"] .pip[data-pos="3"], .die[data-value="4"] .pip[data-pos="7"], .die[data-value="4"] .pip[data-pos="9"]{ opacity:1; }
-  .die[data-value="5"] .pip[data-pos="1"], .die[data-value="5"] .pip[data-pos="3"], .die[data-value="5"] .pip[data-pos="5"], .die[data-value="5"] .pip[data-pos="7"], .die[data-value="5"] .pip[data-pos="9"]{ opacity:1; }
-  .die[data-value="6"] .pip[data-pos="1"], .die[data-value="6"] .pip[data-pos="3"], .die[data-value="6"] .pip[data-pos="4"], .die[data-value="6"] .pip[data-pos="6"], .die[data-value="6"] .pip[data-pos="7"], .die[data-value="6"] .pip[data-pos="9"]{ opacity:1; }
+  .die.dim{ opacity: .4; border-style: dashed; box-shadow: none; }
+  .die.appeal{ color: var(--wicket); border-color: var(--wicket); }
 
   .ball-readout{
     min-height: 2.4em;
@@ -279,6 +280,7 @@
   .ball-readout .runs{ color: var(--accent-strong); }
   .ball-readout .out{ color: var(--wicket); }
   .ball-readout .boundary{ color: var(--gold); }
+  .ball-readout .muted{ color: var(--ink-soft); }
 
   .over-track{
     display:flex; gap: 6px; flex-wrap: wrap; justify-content:center; margin: 14px 0 4px;
@@ -288,13 +290,15 @@
     border: 2px solid var(--paper-rule);
     border-radius: 6px;
     display:flex; align-items:center; justify-content:center;
-    font-family: 'Space Mono', monospace; font-size: .82rem; font-weight:700;
+    font-family: 'Space Mono', monospace; font-size: .74rem; font-weight:700;
     background: var(--paper);
     color: var(--ink-soft);
   }
   .over-track .ball.played{ color: var(--ink); border-color: var(--ink); }
   .over-track .ball.wicket{ color: #fff; background: var(--wicket); border-color: var(--wicket); }
   .over-track .ball.boundary{ color: var(--accent-contrast); background: var(--gold); border-color: var(--gold); }
+  .over-track .ball.noball{ color: var(--gold); border-color: var(--gold); border-style: dashed; }
+  .over-track .ball.notout{ color: var(--ink-soft); border-style: dashed; }
   .over-track .ball.pending{ opacity: .4; }
 
   details.log{
@@ -311,7 +315,7 @@
     text-align:left; padding: 4px 8px; border-bottom: 1px solid var(--paper-rule);
   }
   .log-table tr.wicket-row td{ color: var(--wicket); }
-  .log-wrap{ max-height: 220px; overflow-y:auto; }
+  .log-wrap{ max-height: 220px; overflow-y:auto; overflow-x:auto; }
 
   .stamp{
     display:inline-block;
@@ -350,6 +354,7 @@
   .dialog-inner{ padding: 22px 24px; }
   .dialog-inner h3{ font-size: 1.4rem; margin-bottom: 10px; }
   .dialog-inner ul{ padding-left: 20px; line-height: 1.55; }
+  .dialog-inner .note{ color: var(--ink-soft); font-size: .85rem; margin-top: 14px; }
   .dialog-inner .close-row{ text-align:right; margin-top: 14px; }
 
   footer.note{
@@ -359,7 +364,7 @@
   @media (max-width: 480px){
     .scoreboard{ align-items: flex-start; }
     .scoreboard .figures{ font-size: 1.7rem; }
-    .die{ width: 56px; height: 56px; }
+    .die{ min-width: 88px; height: 64px; font-size: .85rem; }
   }
 </style>
 </head>
@@ -371,23 +376,26 @@
     <svg class="underline" viewBox="0 0 320 14" preserveAspectRatio="none" aria-hidden="true">
       <path d="M4 9 C 60 2, 120 13, 160 7 S 260 1, 316 8" />
     </svg>
-    <p>Two dice, six balls an over — a full match on the back page of an exercise book.</p>
+    <p>Roll for runs. Appeal on OWZTHAT. Batting stays in until all out.</p>
   </header>
   <main id="app"></main>
-  <footer class="note">Pass the device between overs. No actual pencils were harmed.</footer>
+  <footer class="note">Pass the device to the other player between innings. No actual pencils were harmed.</footer>
 </div>
 
 <dialog id="rulesDialog">
   <div class="dialog-inner">
-    <h3>How a ball is bowled</h3>
+    <h3>How a ball is played</h3>
     <ul>
-      <li>Every ball, both dice are rolled.</li>
-      <li><strong>Matching numbers</strong> (a double) is a wicket. Which dismissal depends on the number: 1&nbsp;=&nbsp;Caught, 2&nbsp;=&nbsp;Stumped, 3&nbsp;=&nbsp;Run Out, 4&nbsp;=&nbsp;LBW, 5&nbsp;=&nbsp;Caught &amp; Bowled, 6&nbsp;=&nbsp;Bowled.</li>
-      <li><strong>Different numbers</strong> score runs equal to the sum of the two dice (3 to 11).</li>
-      <li>A sum of 9 or 10 is called as a Boundary (FOUR); a sum of 11 — the highest possible — is a Maximum (SIX).</li>
-      <li>Six balls make an over.</li>
-      <li>The team batting first sets a target. The second team wins by reaching it before running out of overs or wickets; otherwise the higher score wins. Equal scores is a Tie.</li>
+      <li>The batting side rolls the <strong>Batting Die</strong>: 1, 2, 3, 4, 6, or <strong>OWZTHAT</strong>.</li>
+      <li>A number is runs scored off that ball — play carries straight on.</li>
+      <li><strong>OWZTHAT</strong> is an appeal. The bowling side rolls the <strong>Bowling Die</strong> to answer it: Bowled, Stumped, Caught, Not&nbsp;Out, No&nbsp;Ball, or L.B.W.</li>
+      <li><strong>Not Out</strong> — the appeal fails, no runs, batting continues.</li>
+      <li><strong>No Ball</strong> — the appeal fails and the batting side gets 1 run.</li>
+      <li>Anything else (Bowled, Stumped, Caught, L.B.W.) is a wicket.</li>
+      <li>An innings ends when the wicket limit falls (10, by default). Each side bats one innings; the higher score wins. Equal scores is a Tie.</li>
+      <li>There's no built-in over limit — pick "Limit overs" at setup if you want a fixed-length house-rule match instead of playing to all out.</li>
     </ul>
+    <p class="note">Rules adapted from <em>Owzthat</em>, the dice cricket game invented by Lindop's in 1924 and patented in 1932.</p>
     <div class="close-row"><button class="btn secondary" onclick="document.getElementById('rulesDialog').close()">Close</button></div>
   </div>
 </dialog>
@@ -396,14 +404,20 @@
 (function(){
   "use strict";
 
-  var DISMISSAL = {1:"Caught!", 2:"Stumped!", 3:"Run Out!", 4:"LBW!", 5:"Caught &amp; Bowled!", 6:"Bowled!"};
+  var BATTING_FACES = ["1","2","3","4","6","OWZTHAT"];
+  var BOWLING_FACES = ["BOWLED","STUMPED","CAUGHT","NOT OUT","NO BALL","L.B.W."];
+  var BOWLING_LABEL = {
+    "BOWLED":"Bowled!", "STUMPED":"Stumped!", "CAUGHT":"Caught!",
+    "L.B.W.":"LBW!", "NOT OUT":"Not Out", "NO BALL":"No Ball"
+  };
 
   function defaultState(){
     return {
       screen: "cover",
       teamA: "", teamB: "",
       oversCustomDraft: "", wicketsCustomDraft: "",
-      overs: 5, wickets: 2,
+      oversLimited: false,
+      overs: 20, wickets: 10,
       tossWinner: null, tossChoice: null,
       battingFirstTeam: null,
       innings: 1,
@@ -450,43 +464,89 @@
 
   function bowlBall(){
     if(!state.current || state.current.done) return;
-    var app = document.getElementById("app");
-    var dieEls = app.querySelectorAll(".die");
-    dieEls.forEach(function(d){ d.classList.add("rolling"); });
     var bowlBtn = document.getElementById("bowlBtn");
     if(bowlBtn) bowlBtn.disabled = true;
+    var battingDie = document.getElementById("battingDie");
+    var bowlingDie = document.getElementById("bowlingDie");
+    bowlingDie.classList.add("dim");
+    bowlingDie.classList.remove("rolling");
+    bowlingDie.textContent = "—";
+    battingDie.classList.remove("appeal");
+    battingDie.classList.add("rolling");
 
     var ticks = 0;
     var spin = setInterval(function(){
       ticks++;
-      dieEls.forEach(function(d){ d.setAttribute("data-value", rollDie()); });
+      battingDie.textContent = BATTING_FACES[rollDie()-1];
       if(ticks >= 7){
         clearInterval(spin);
-        settleBall();
+        battingDie.classList.remove("rolling");
+        var battingIdx = rollDie()-1;
+        battingDie.textContent = BATTING_FACES[battingIdx];
+        if(battingIdx === 5){
+          battingDie.classList.add("appeal");
+          setTimeout(function(){ rollBowlingDie(battingIdx); }, 400);
+        } else {
+          finishBall(battingIdx, null);
+        }
       }
     }, 70);
   }
 
-  function settleBall(){
-    var d1 = rollDie(), d2 = rollDie();
+  function rollBowlingDie(battingIdx){
+    var bowlingDie = document.getElementById("bowlingDie");
+    bowlingDie.classList.remove("dim");
+    bowlingDie.classList.add("rolling");
+    var ticks = 0;
+    var spin = setInterval(function(){
+      ticks++;
+      bowlingDie.textContent = BOWLING_FACES[rollDie()-1];
+      if(ticks >= 7){
+        clearInterval(spin);
+        bowlingDie.classList.remove("rolling");
+        var bowlingIdx = rollDie()-1;
+        bowlingDie.textContent = BOWLING_FACES[bowlingIdx];
+        finishBall(battingIdx, bowlingIdx);
+      }
+    }, 70);
+  }
+
+  function finishBall(battingIdx, bowlingIdx){
     var cur = state.current;
     var over = Math.floor(cur.ballsBowled/6) + 1;
     var ballInOver = (cur.ballsBowled % 6) + 1;
-    var entry = { over: over, ball: ballInOver, d1: d1, d2: d2 };
+    var battingFace = BATTING_FACES[battingIdx];
+    var entry = { over: over, ball: ballInOver, battingFace: battingFace, bowlingFace: null };
 
-    if(d1 === d2){
-      cur.wickets++;
-      entry.wicket = true;
-      entry.dismissal = DISMISSAL[d1];
-      entry.text = d1 + "-" + d2 + " — " + DISMISSAL[d1].replace("!","");
-    } else {
-      var runs = d1 + d2;
+    if(bowlingIdx === null){
+      var runs = parseInt(battingFace, 10);
       cur.runs += runs;
+      entry.type = "runs";
       entry.runs = runs;
-      if(runs === 11){ entry.boundaryLabel = "SIX!"; }
-      else if(runs === 9 || runs === 10){ entry.boundaryLabel = "FOUR!"; }
-      entry.text = d1 + " + " + d2 + " = " + runs + (entry.boundaryLabel ? " — " + entry.boundaryLabel : "");
+      if(runs === 4){ entry.boundaryLabel = "FOUR!"; }
+      else if(runs === 6){ entry.boundaryLabel = "SIX!"; }
+      entry.text = runs + " run" + (runs===1?"":"s") + (entry.boundaryLabel ? " — " + entry.boundaryLabel : "");
+    } else {
+      var bowlingFace = BOWLING_FACES[bowlingIdx];
+      entry.bowlingFace = bowlingFace;
+      if(bowlingFace === "NOT OUT"){
+        entry.type = "notout";
+        entry.runs = 0;
+        entry.text = "Appeal turned down — Not Out";
+      } else if(bowlingFace === "NO BALL"){
+        entry.type = "noball";
+        entry.runs = 1;
+        cur.runs += 1;
+        entry.text = "No Ball — 1 run";
+      } else {
+        entry.type = "wicket";
+        entry.wicket = true;
+        cur.wickets++;
+        entry.dismissal = BOWLING_LABEL[bowlingFace];
+        entry.text = "OWZTHAT! " + entry.dismissal;
+      }
     }
+
     cur.ballsBowled++;
     cur.log.push(entry);
     cur.lastBall = entry;
@@ -498,9 +558,8 @@
 
   function checkInningsEnd(){
     var cur = state.current;
-    var maxBalls = state.overs * 6;
     var allOut = cur.wickets >= state.wickets;
-    var oversUp = cur.ballsBowled >= maxBalls;
+    var oversUp = state.oversLimited && cur.ballsBowled >= state.overs * 6;
     var chased = state.innings === 2 && state.target !== null && cur.runs >= state.target;
 
     if(allOut || oversUp || chased){
@@ -539,6 +598,7 @@
 
   function setOvers(n){ state.overs = n; render(); }
   function setWickets(n){ state.wickets = n; render(); }
+  function setFormat(limited){ state.oversLimited = limited; render(); }
   function setTeamA(v){ state.teamA = v; }
   function setTeamB(v){ state.teamB = v; }
   function setOversCustom(v){ state.oversCustomDraft = v; }
@@ -548,7 +608,7 @@
     state.teamA = (state.teamA || "Team A").trim() || "Team A";
     state.teamB = (state.teamB || "Team B").trim() || "Team B";
     if(state.oversCustomDraft) state.overs = Math.max(1, Math.min(50, parseInt(state.oversCustomDraft,10) || state.overs));
-    if(state.wicketsCustomDraft) state.wickets = Math.max(1, Math.min(10, parseInt(state.wicketsCustomDraft,10) || state.wickets));
+    if(state.wicketsCustomDraft) state.wickets = Math.max(1, Math.min(15, parseInt(state.wicketsCustomDraft,10) || state.wickets));
     state.screen = "toss";
     render();
   }
@@ -604,12 +664,23 @@
   }
 
   function renderSetup(){
+    var formatChips =
+      '<button class="chip" aria-pressed="'+(!state.oversLimited)+'" onclick="window.__pc.setFormat(false)">Classic — all out</button>' +
+      '<button class="chip" aria-pressed="'+(state.oversLimited)+'" onclick="window.__pc.setFormat(true)">Limit overs</button>';
     var overChips = [2,5,10,20].map(function(n){
       return '<button class="chip" aria-pressed="'+(state.overs===n)+'" onclick="window.__pc.setOvers('+n+')">'+n+' overs</button>';
     }).join("");
-    var wicketChips = [1,2,3,5].map(function(n){
-      return '<button class="chip" aria-pressed="'+(state.wickets===n)+'" onclick="window.__pc.setWickets('+n+')">'+n+' wkt'+(n>1?"s":"")+'</button>';
+    var wicketChips = [5,10,15].map(function(n){
+      return '<button class="chip" aria-pressed="'+(state.wickets===n)+'" onclick="window.__pc.setWickets('+n+')">'+n+' wkts</button>';
     }).join("");
+    var oversField = state.oversLimited ? (
+      '<div class="field">' +
+        '<label>Overs per innings</label>' +
+        '<div class="chip-row">' + overChips +
+          '<input type="number" id="oversCustom" placeholder="custom" min="1" max="50" value="'+esc(state.oversCustomDraft)+'" oninput="window.__pc.setOversCustom(this.value)" />' +
+        '</div>' +
+      '</div>'
+    ) : "";
     return (
       '<div class="card">' +
         '<h2>Fill in the scorebook cover</h2>' +
@@ -623,15 +694,14 @@
           '<input type="text" id="teamBInput" placeholder="Team B" value="'+esc(state.teamB)+'" maxlength="24" oninput="window.__pc.setTeamB(this.value)" />' +
         '</div>' +
         '<div class="field">' +
-          '<label>Overs per innings</label>' +
-          '<div class="chip-row">' + overChips +
-            '<input type="number" id="oversCustom" placeholder="custom" min="1" max="50" value="'+esc(state.oversCustomDraft)+'" oninput="window.__pc.setOversCustom(this.value)" />' +
-          '</div>' +
+          '<label>Format</label>' +
+          '<div class="chip-row">' + formatChips + '</div>' +
         '</div>' +
+        oversField +
         '<div class="field">' +
-          '<label>Wickets per innings</label>' +
+          '<label>Wickets before all out</label>' +
           '<div class="chip-row">' + wicketChips +
-            '<input type="number" id="wicketsCustom" placeholder="custom" min="1" max="10" value="'+esc(state.wicketsCustomDraft)+'" oninput="window.__pc.setWicketsCustom(this.value)" />' +
+            '<input type="number" id="wicketsCustom" placeholder="custom" min="1" max="15" value="'+esc(state.wicketsCustomDraft)+'" oninput="window.__pc.setWicketsCustom(this.value)" />' +
           '</div>' +
         '</div>' +
         '<button class="btn wide" onclick="window.__pc.confirmSetup()">Go to the Toss</button>' +
@@ -656,19 +726,26 @@
     return '<div class="card result-center"><h2>The Toss</h2>' + body + '</div>';
   }
 
-  function renderDiceHTML(d1, d2){
-    d1 = d1 || 1; d2 = d2 || 1;
-    function pips(){
-      var out = "";
-      for(var i=1;i<=9;i++){ out += '<span class="pip" data-pos="'+i+'"></span>'; }
-      return out;
-    }
+  function renderDiceHTML(battingText, bowlingText, bowlingDim){
     return (
       '<div class="dice-pair">' +
-        '<div class="die" data-value="'+d1+'">' + pips() + '</div>' +
-        '<div class="die" data-value="'+d2+'">' + pips() + '</div>' +
+        '<div class="die-slot"><div class="die-label">Batting Die</div><div class="die" id="battingDie">' + esc(battingText) + '</div></div>' +
+        '<div class="die-slot"><div class="die-label">Bowling Die</div><div class="die'+(bowlingDim?' dim':'')+'" id="bowlingDie">' + esc(bowlingText) + '</div></div>' +
       '</div>'
     );
+  }
+
+  function overCellClass(entry){
+    if(entry.type === "wicket") return "ball played wicket";
+    if(entry.type === "notout") return "ball played notout";
+    if(entry.type === "noball") return "ball played noball";
+    return "ball played" + (entry.boundaryLabel ? " boundary" : "");
+  }
+  function overCellLabel(entry){
+    if(entry.type === "wicket") return "W";
+    if(entry.type === "notout") return "&middot;";
+    if(entry.type === "noball") return "nb";
+    return entry.runs;
   }
 
   function renderOverTrack(cur){
@@ -679,9 +756,7 @@
       var ballIdx = startIdx + i;
       var entry = cur.log[ballIdx];
       if(entry){
-        var cls = "ball played" + (entry.wicket ? " wicket" : (entry.boundaryLabel ? " boundary" : ""));
-        var label = entry.wicket ? "W" : entry.runs;
-        cells.push('<div class="'+cls+'">'+label+'</div>');
+        cells.push('<div class="'+overCellClass(entry)+'">'+overCellLabel(entry)+'</div>');
       } else {
         cells.push('<div class="ball pending">&middot;</div>');
       }
@@ -694,12 +769,11 @@
       return '<p class="sub">No balls bowled yet.</p>';
     }
     var rows = cur.log.slice().reverse().map(function(e){
-      var rowClass = e.wicket ? ' class="wicket-row"' : "";
-      var resultText = e.wicket ? e.dismissal : (e.runs + (e.boundaryLabel ? " — " + e.boundaryLabel : ""));
-      return '<tr'+rowClass+'><td>'+e.over+'.'+e.ball+'</td><td>'+e.d1+'-'+e.d2+'</td><td>'+resultText+'</td></tr>';
+      var rowClass = e.type === "wicket" ? ' class="wicket-row"' : "";
+      return '<tr'+rowClass+'><td>'+e.over+'.'+e.ball+'</td><td>'+esc(e.battingFace)+'</td><td>'+(e.bowlingFace ? esc(e.bowlingFace) : '—')+'</td><td>'+e.text+'</td></tr>';
     }).join("");
     return (
-      '<div class="log-wrap"><table class="log-table"><thead><tr><th>Ball</th><th>Dice</th><th>Result</th></tr></thead><tbody>' +
+      '<div class="log-wrap"><table class="log-table"><thead><tr><th>Ball</th><th>Bat</th><th>Bowl</th><th>Result</th></tr></thead><tbody>' +
         rows +
       '</tbody></table></div>'
     );
@@ -711,32 +785,35 @@
     var bowlingName = teamName(other(cur.battingTeam));
     var maxBalls = state.overs * 6;
     var runRate = cur.ballsBowled > 0 ? (cur.runs / (cur.ballsBowled/6)).toFixed(2) : "0.00";
+    var oversMeta = state.oversLimited ? (oversDisplay(cur.ballsBowled) + ' / ' + state.overs + ' overs') : (oversDisplay(cur.ballsBowled) + ' overs');
 
     var targetStrip = "";
     if(state.innings === 2 && state.target !== null){
-      var required = state.target - cur.runs;
-      var ballsLeft = maxBalls - cur.ballsBowled;
-      var reqRate = ballsLeft > 0 ? (required / (ballsLeft/6)).toFixed(2) : "—";
-      targetStrip = '<div class="target-strip">Target ' + state.target + ' &middot; need ' +
-        Math.max(required,0) + ' from ' + ballsLeft + ' ball' + (ballsLeft===1?"":"s") +
-        ' &middot; req. rate ' + reqRate + '</div>';
+      var required = Math.max(state.target - cur.runs, 0);
+      if(state.oversLimited){
+        var ballsLeft = maxBalls - cur.ballsBowled;
+        var reqRate = ballsLeft > 0 ? (required / (ballsLeft/6)).toFixed(2) : "—";
+        targetStrip = '<div class="target-strip">Target ' + state.target + ' &middot; need ' +
+          required + ' from ' + ballsLeft + ' ball' + (ballsLeft===1?"":"s") +
+          ' &middot; req. rate ' + reqRate + '</div>';
+      } else {
+        targetStrip = '<div class="target-strip">Target ' + state.target + ' &middot; need ' + required + ' run' + (required===1?"":"s") + ' to win</div>';
+      }
     }
 
     var readout = "";
+    var battingText = "—", bowlingText = "—", bowlingDim = true;
     if(cur.lastBall){
       var lb = cur.lastBall;
-      if(lb.wicket){
-        readout = '<span class="out">' + lb.d1 + '-' + lb.d2 + ' — ' + lb.dismissal + '</span>';
-      } else if(lb.boundaryLabel){
-        readout = '<span class="boundary">' + lb.d1 + ' + ' + lb.d2 + ' = ' + lb.runs + ' — ' + lb.boundaryLabel + '</span>';
-      } else {
-        readout = '<span class="runs">' + lb.d1 + ' + ' + lb.d2 + ' = ' + lb.runs + ' run' + (lb.runs===1?"":"s") + '</span>';
-      }
+      battingText = lb.battingFace;
+      if(lb.bowlingFace){ bowlingText = lb.bowlingFace; bowlingDim = false; }
+      var readoutClass = lb.type === "wicket" ? "out" : (lb.type === "notout" ? "muted" : (lb.boundaryLabel || lb.type === "noball" ? "boundary" : "runs"));
+      readout = '<span class="' + readoutClass + '">' + lb.text + '</span>';
     } else {
       readout = '<span>Tap Bowl to start the innings.</span>';
     }
 
-    var dice = cur.lastBall ? renderDiceHTML(cur.lastBall.d1, cur.lastBall.d2) : renderDiceHTML(1,1);
+    var dice = renderDiceHTML(battingText, bowlingText, bowlingDim);
 
     return (
       '<div class="card">' +
@@ -747,7 +824,7 @@
           '</div>' +
           '<div style="text-align:right">' +
             '<div class="figures">' + cur.runs + '<span class="wk">/' + cur.wickets + '</span></div>' +
-            '<div class="meta">' + oversDisplay(cur.ballsBowled) + ' / ' + state.overs + ' overs &middot; RR ' + runRate + '</div>' +
+            '<div class="meta">' + oversMeta + ' &middot; RR ' + runRate + '</div>' +
           '</div>' +
         '</div>' +
         targetStrip +
@@ -765,13 +842,14 @@
   function renderBreak(){
     var s = state.firstInningsSummary;
     var chasingTeam = other(s.team);
+    var ballsPhrase = state.oversLimited ? (' from ' + (state.overs*6) + ' balls') : '';
     return (
       '<div class="card result-center">' +
         '<h2>End of the first innings</h2>' +
         '<p class="sub">' + esc(teamName(s.team)) + ' finished on <strong>' + s.runs + '/' + s.wickets +
           '</strong> from ' + oversDisplay(s.balls) + ' overs.</p>' +
         '<p class="sub"><strong>' + esc(teamName(chasingTeam)) + '</strong> needs <strong>' + state.target +
-          '</strong> runs from ' + (state.overs*6) + ' balls to win.</p>' +
+          '</strong> runs' + ballsPhrase + ' to win.</p>' +
         '<button class="btn wide" onclick="window.__pc.startSecondInnings()">Start Second Innings</button>' +
       '</div>'
     );
@@ -821,6 +899,7 @@
     confirmSetup: confirmSetup,
     setOvers: setOvers,
     setWickets: setWickets,
+    setFormat: setFormat,
     setTeamA: setTeamA,
     setTeamB: setTeamB,
     setOversCustom: setOversCustom,
