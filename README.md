@@ -23,12 +23,19 @@ The batting side rolls the **Batting Die**: 1, 2, 3, 4, 6, or **OWZTHAT**.
   answer it: Bowled, Stumped, Caught, Not Out, No Ball, or L.B.W.
   - **Not Out** — the appeal fails, no runs, batting continues.
   - **No Ball** — the appeal fails and the batting side gets 1 run.
-  - Anything else (Bowled, Stumped, Caught, L.B.W.) is a wicket.
+  - Anything else (Bowled, Stumped, Caught, L.B.W.) is a wicket — the next
+  batter comes to the crease.
 - An innings ends when the wicket limit falls (10, by default). Each side
   bats one innings; the higher score wins. Equal scores is a Tie.
 - There's no built-in over limit — the "Limit overs" format at setup adds
   one as an optional house rule for a fixed-length match instead of playing
   to all out.
+
+At setup you can optionally type out each team's batting order (one name
+per line) — otherwise batters are auto-numbered "Batter 1", "Batter 2", and
+so on. Each batter's individual score is tracked on a running scorecard
+(runs, how out, extras, total), visible during the innings and in the final
+match result.
 
 Rules adapted from *Owzthat*, the dice cricket game invented by Lindop's in
 1924 and patented in 1932.

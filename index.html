@@ -147,7 +147,7 @@
     display:block; font-size: .78rem; text-transform: uppercase; letter-spacing: .09em;
     color: var(--ink-soft); margin-bottom: 6px; font-weight: 600;
   }
-  .field input[type="text"], .field input[type="number"]{
+  .field input[type="text"], .field input[type="number"], .field textarea{
     width: 100%;
     font-family: 'Work Sans', sans-serif;
     font-size: 1rem;
@@ -157,7 +157,14 @@
     background: var(--paper);
     color: var(--ink);
   }
-  .field input:focus{ outline: 2px solid var(--focus); outline-offset: 1px; }
+  .field textarea{
+    font-family: 'Space Mono', monospace;
+    font-size: .85rem;
+    resize: vertical;
+    min-height: 5.5em;
+  }
+  .field input:focus, .field textarea:focus{ outline: 2px solid var(--focus); outline-offset: 1px; }
+  .field .hint{ font-size: .78rem; color: var(--ink-soft); margin-top: 5px; }
   .chip-row{ display:flex; flex-wrap: wrap; gap: 8px; align-items:center; }
   .chip{
     font-family: 'Space Mono', monospace;
@@ -227,6 +234,14 @@
     font-family: 'Space Mono', monospace;
     font-size: .82rem;
     color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .scoreboard .batsman-line{
+    font-family: 'Space Mono', monospace;
+    font-size: .88rem;
+    color: var(--ink);
+    font-weight: 700;
+    margin-top: 2px;
     font-variant-numeric: tabular-nums;
   }
   .target-strip{
@@ -314,7 +329,10 @@
   .log-table th, .log-table td{
     text-align:left; padding: 4px 8px; border-bottom: 1px solid var(--paper-rule);
   }
+  .log-table td.num, .log-table th.num{ text-align:right; font-variant-numeric: tabular-nums; }
   .log-table tr.wicket-row td{ color: var(--wicket); }
+  .log-table tr.out-row td{ color: var(--ink-soft); }
+  .log-table tr.not-out-row td{ color: var(--ink); font-weight: 700; }
   .log-wrap{ max-height: 220px; overflow-y:auto; overflow-x:auto; }
 
   .stamp{
@@ -391,7 +409,7 @@
       <li><strong>OWZTHAT</strong> is an appeal. The bowling side rolls the <strong>Bowling Die</strong> to answer it: Bowled, Stumped, Caught, Not&nbsp;Out, No&nbsp;Ball, or L.B.W.</li>
       <li><strong>Not Out</strong> — the appeal fails, no runs, batting continues.</li>
       <li><strong>No Ball</strong> — the appeal fails and the batting side gets 1 run.</li>
-      <li>Anything else (Bowled, Stumped, Caught, L.B.W.) is a wicket.</li>
+      <li>Anything else (Bowled, Stumped, Caught, L.B.W.) is a wicket — the next batter comes to the crease, and their runs are tracked separately on the scorecard.</li>
       <li>An innings ends when the wicket limit falls (10, by default). Each side bats one innings; the higher score wins. Equal scores is a Tie.</li>
       <li>There's no built-in over limit — pick "Limit overs" at setup if you want a fixed-length house-rule match instead of playing to all out.</li>
     </ul>
@@ -416,6 +434,8 @@
       screen: "cover",
       teamA: "", teamB: "",
       oversCustomDraft: "", wicketsCustomDraft: "",
+      battingOrderADraft: "", battingOrderBDraft: "",
+      battingOrderA: [], battingOrderB: [],
       oversLimited: false,
       overs: 20, wickets: 10,
       tossWinner: null, tossChoice: null,
@@ -432,10 +452,21 @@
   function saveState(){
     try{ localStorage.setItem("pencilCricketMatch", JSON.stringify(state)); }catch(e){}
   }
+  function isCompatibleState(s){
+    if(!s || !s.screen) return false;
+    if(s.screen === "match" || s.screen === "break"){
+      return !!(s.current && Array.isArray(s.current.batsmen));
+    }
+    return true;
+  }
+
   function loadState(){
     try{
       var raw = localStorage.getItem("pencilCricketMatch");
-      if(raw){ var parsed = JSON.parse(raw); if(parsed && parsed.screen){ return parsed; } }
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(isCompatibleState(parsed)){ return parsed; }
+      }
     }catch(e){}
     return null;
   }
@@ -448,10 +479,18 @@
   function teamName(key){ return key === "A" ? (state.teamA || "Team A") : (state.teamB || "Team B"); }
   function other(key){ return key === "A" ? "B" : "A"; }
 
+  function getBatsmanName(teamKey, idx){
+    var order = teamKey === "A" ? state.battingOrderA : state.battingOrderB;
+    if(order && order[idx]){ return order[idx]; }
+    return "Batter " + (idx + 1);
+  }
+
   function newInnings(battingTeam){
     return {
       battingTeam: battingTeam,
-      runs: 0, wickets: 0, ballsBowled: 0,
+      runs: 0, wickets: 0, ballsBowled: 0, extras: 0,
+      batsmen: [{ name: getBatsmanName(battingTeam, 0), runs: 0, out: false, dismissal: null }],
+      currentBatsmanIndex: 0,
       log: [],
       lastBall: null,
       done: false
@@ -518,9 +557,12 @@
     var battingFace = BATTING_FACES[battingIdx];
     var entry = { over: over, ball: ballInOver, battingFace: battingFace, bowlingFace: null };
 
+    var striker = cur.batsmen[cur.currentBatsmanIndex];
+
     if(bowlingIdx === null){
       var runs = parseInt(battingFace, 10);
       cur.runs += runs;
+      striker.runs += runs;
       entry.type = "runs";
       entry.runs = runs;
       if(runs === 4){ entry.boundaryLabel = "FOUR!"; }
@@ -537,13 +579,22 @@
         entry.type = "noball";
         entry.runs = 1;
         cur.runs += 1;
+        cur.extras += 1;
         entry.text = "No Ball — 1 run";
       } else {
         entry.type = "wicket";
         entry.wicket = true;
         cur.wickets++;
         entry.dismissal = BOWLING_LABEL[bowlingFace];
-        entry.text = "OWZTHAT! " + entry.dismissal;
+        entry.batsmanOut = striker.name;
+        entry.text = "OWZTHAT! " + entry.dismissal + " — " + striker.name + " (" + striker.runs + ")";
+        striker.out = true;
+        striker.dismissal = entry.dismissal;
+        if(cur.wickets < state.wickets){
+          var nextIdx = cur.batsmen.length;
+          cur.batsmen.push({ name: getBatsmanName(cur.battingTeam, nextIdx), runs: 0, out: false, dismissal: null });
+          cur.currentBatsmanIndex = nextIdx;
+        }
       }
     }
 
@@ -566,7 +617,8 @@
       cur.done = true;
       if(state.innings === 1){
         state.firstInningsSummary = {
-          team: cur.battingTeam, runs: cur.runs, wickets: cur.wickets, balls: cur.ballsBowled
+          team: cur.battingTeam, runs: cur.runs, wickets: cur.wickets, balls: cur.ballsBowled,
+          extras: cur.extras, batsmen: cur.batsmen, currentBatsmanIndex: cur.currentBatsmanIndex, done: true
         };
         state.target = cur.runs + 1;
         state.screen = "break";
@@ -603,12 +655,20 @@
   function setTeamB(v){ state.teamB = v; }
   function setOversCustom(v){ state.oversCustomDraft = v; }
   function setWicketsCustom(v){ state.wicketsCustomDraft = v; }
+  function setBattingOrderA(v){ state.battingOrderADraft = v; }
+  function setBattingOrderB(v){ state.battingOrderBDraft = v; }
+
+  function parseBattingOrder(text){
+    return String(text || "").split("\n").map(function(s){ return s.trim(); }).filter(Boolean).slice(0, 15);
+  }
 
   function confirmSetup(){
     state.teamA = (state.teamA || "Team A").trim() || "Team A";
     state.teamB = (state.teamB || "Team B").trim() || "Team B";
     if(state.oversCustomDraft) state.overs = Math.max(1, Math.min(50, parseInt(state.oversCustomDraft,10) || state.overs));
     if(state.wicketsCustomDraft) state.wickets = Math.max(1, Math.min(15, parseInt(state.wicketsCustomDraft,10) || state.wickets));
+    state.battingOrderA = parseBattingOrder(state.battingOrderADraft);
+    state.battingOrderB = parseBattingOrder(state.battingOrderBDraft);
     state.screen = "toss";
     render();
   }
@@ -692,6 +752,16 @@
         '<div class="field">' +
           '<label for="teamBInput">Team batting order slot B</label>' +
           '<input type="text" id="teamBInput" placeholder="Team B" value="'+esc(state.teamB)+'" maxlength="24" oninput="window.__pc.setTeamB(this.value)" />' +
+        '</div>' +
+        '<div class="field">' +
+          '<label for="battingOrderA">'+esc(state.teamA || "Team A")+' batting lineup</label>' +
+          '<textarea id="battingOrderA" placeholder="One name per line" oninput="window.__pc.setBattingOrderA(this.value)">'+esc(state.battingOrderADraft)+'</textarea>' +
+          '<div class="hint">Optional — leave blank for Batter 1, Batter 2…</div>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label for="battingOrderB">'+esc(state.teamB || "Team B")+' batting lineup</label>' +
+          '<textarea id="battingOrderB" placeholder="One name per line" oninput="window.__pc.setBattingOrderB(this.value)">'+esc(state.battingOrderBDraft)+'</textarea>' +
+          '<div class="hint">Optional — leave blank for Batter 1, Batter 2…</div>' +
         '</div>' +
         '<div class="field">' +
           '<label>Format</label>' +
@@ -779,6 +849,24 @@
     );
   }
 
+  function renderScorecard(inn){
+    var rows = inn.batsmen.map(function(b, i){
+      var status;
+      if(b.out){ status = esc(b.dismissal); }
+      else if(i === inn.currentBatsmanIndex && !inn.done){ status = "not out*"; }
+      else { status = "not out"; }
+      var rowClass = b.out ? ' class="out-row"' : (i === inn.currentBatsmanIndex && !inn.done ? ' class="not-out-row"' : "");
+      return '<tr'+rowClass+'><td>'+esc(b.name)+'</td><td class="num">'+b.runs+'</td><td>'+status+'</td></tr>';
+    }).join("");
+    return (
+      '<div class="log-wrap"><table class="log-table"><thead><tr><th>Batter</th><th class="num">Runs</th><th>How Out</th></tr></thead><tbody>' +
+        rows +
+        '<tr><td>Extras</td><td class="num">'+inn.extras+'</td><td>(no balls)</td></tr>' +
+        '<tr><td><strong>Total</strong></td><td class="num"><strong>'+inn.runs+'</strong></td><td>'+inn.wickets+' wkt'+(inn.wickets===1?"":"s")+'</td></tr>' +
+      '</tbody></table></div>'
+    );
+  }
+
   function renderMatch(){
     var cur = state.current;
     var battingName = teamName(cur.battingTeam);
@@ -821,6 +909,7 @@
           '<div>' +
             '<div class="team-name">' + esc(battingName) + ' <span style="color:var(--ink-soft);font-weight:400;font-size:.85rem">batting</span></div>' +
             '<div class="meta">vs ' + esc(bowlingName) + '</div>' +
+            '<div class="batsman-line">' + esc(cur.batsmen[cur.currentBatsmanIndex].name) + ' — ' + cur.batsmen[cur.currentBatsmanIndex].runs + (cur.done ? '' : '*') + '</div>' +
           '</div>' +
           '<div style="text-align:right">' +
             '<div class="figures">' + cur.runs + '<span class="wk">/' + cur.wickets + '</span></div>' +
@@ -834,6 +923,7 @@
           '<button class="btn" id="bowlBtn" onclick="window.__pc.bowlBall()">Bowl</button>' +
         '</div>' +
         renderOverTrack(cur) +
+        '<details class="log"><summary>Scorecard</summary>' + renderScorecard(cur) + '</details>' +
         '<details class="log"><summary>Ball-by-ball</summary>' + renderLogTable(cur) + '</details>' +
       '</div>'
     );
@@ -850,6 +940,7 @@
           '</strong> from ' + oversDisplay(s.balls) + ' overs.</p>' +
         '<p class="sub"><strong>' + esc(teamName(chasingTeam)) + '</strong> needs <strong>' + state.target +
           '</strong> runs' + ballsPhrase + ' to win.</p>' +
+        '<details class="log" style="text-align:left"><summary>' + esc(teamName(s.team)) + ' scorecard</summary>' + renderScorecard(s) + '</details>' +
         '<button class="btn wide" onclick="window.__pc.startSecondInnings()">Start Second Innings</button>' +
       '</div>'
     );
@@ -887,6 +978,8 @@
             '<tr><td>' + esc(teamName(team2)) + '</td><td class="num">' + cur.runs + '/' + cur.wickets + '</td><td class="num">' + oversDisplay(cur.ballsBowled) + '</td></tr>' +
           '</tbody>' +
         '</table>' +
+        '<details class="log" style="text-align:left"><summary>' + esc(teamName(team1)) + ' scorecard</summary>' + renderScorecard(s1) + '</details>' +
+        '<details class="log" style="text-align:left"><summary>' + esc(teamName(team2)) + ' scorecard</summary>' + renderScorecard(cur) + '</details>' +
         '<div class="btn-row" style="justify-content:center;margin-top:18px">' +
           '<button class="btn" onclick="window.__pc.startNewMatch()">Play Again</button>' +
         '</div>' +
@@ -904,6 +997,8 @@
     setTeamB: setTeamB,
     setOversCustom: setOversCustom,
     setWicketsCustom: setWicketsCustom,
+    setBattingOrderA: setBattingOrderA,
+    setBattingOrderB: setBattingOrderB,
     flipCoin: flipCoin,
     chooseToss: chooseToss,
     bowlBall: bowlBall,
