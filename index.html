@@ -443,7 +443,9 @@
       innings: 1,
       current: null,
       firstInningsSummary: null,
-      target: null
+      target: null,
+      scorecardOpen: false,
+      ballLogOpen: false
     };
   }
 
@@ -657,6 +659,8 @@
   function setWicketsCustom(v){ state.wicketsCustomDraft = v; }
   function setBattingOrderA(v){ state.battingOrderADraft = v; }
   function setBattingOrderB(v){ state.battingOrderBDraft = v; }
+  function setScorecardOpen(v){ state.scorecardOpen = !!v; saveState(); }
+  function setBallLogOpen(v){ state.ballLogOpen = !!v; saveState(); }
 
   function parseBattingOrder(text){
     return String(text || "").split("\n").map(function(s){ return s.trim(); }).filter(Boolean).slice(0, 15);
@@ -923,8 +927,8 @@
           '<button class="btn" id="bowlBtn" onclick="window.__pc.bowlBall()">Bowl</button>' +
         '</div>' +
         renderOverTrack(cur) +
-        '<details class="log"><summary>Scorecard</summary>' + renderScorecard(cur) + '</details>' +
-        '<details class="log"><summary>Ball-by-ball</summary>' + renderLogTable(cur) + '</details>' +
+        '<details class="log"' + (state.scorecardOpen ? ' open' : '') + ' ontoggle="window.__pc.setScorecardOpen(this.open)"><summary>Scorecard</summary>' + renderScorecard(cur) + '</details>' +
+        '<details class="log"' + (state.ballLogOpen ? ' open' : '') + ' ontoggle="window.__pc.setBallLogOpen(this.open)"><summary>Ball-by-ball</summary>' + renderLogTable(cur) + '</details>' +
       '</div>'
     );
   }
@@ -940,7 +944,7 @@
           '</strong> from ' + oversDisplay(s.balls) + ' overs.</p>' +
         '<p class="sub"><strong>' + esc(teamName(chasingTeam)) + '</strong> needs <strong>' + state.target +
           '</strong> runs' + ballsPhrase + ' to win.</p>' +
-        '<details class="log" style="text-align:left"><summary>' + esc(teamName(s.team)) + ' scorecard</summary>' + renderScorecard(s) + '</details>' +
+        '<details class="log" style="text-align:left"' + (state.scorecardOpen ? ' open' : '') + ' ontoggle="window.__pc.setScorecardOpen(this.open)"><summary>' + esc(teamName(s.team)) + ' scorecard</summary>' + renderScorecard(s) + '</details>' +
         '<button class="btn wide" onclick="window.__pc.startSecondInnings()">Start Second Innings</button>' +
       '</div>'
     );
@@ -978,8 +982,8 @@
             '<tr><td>' + esc(teamName(team2)) + '</td><td class="num">' + cur.runs + '/' + cur.wickets + '</td><td class="num">' + oversDisplay(cur.ballsBowled) + '</td></tr>' +
           '</tbody>' +
         '</table>' +
-        '<details class="log" style="text-align:left"><summary>' + esc(teamName(team1)) + ' scorecard</summary>' + renderScorecard(s1) + '</details>' +
-        '<details class="log" style="text-align:left"><summary>' + esc(teamName(team2)) + ' scorecard</summary>' + renderScorecard(cur) + '</details>' +
+        '<details class="log" style="text-align:left"' + (state.scorecardOpen ? ' open' : '') + ' ontoggle="window.__pc.setScorecardOpen(this.open)"><summary>' + esc(teamName(team1)) + ' scorecard</summary>' + renderScorecard(s1) + '</details>' +
+        '<details class="log" style="text-align:left"' + (state.scorecardOpen ? ' open' : '') + ' ontoggle="window.__pc.setScorecardOpen(this.open)"><summary>' + esc(teamName(team2)) + ' scorecard</summary>' + renderScorecard(cur) + '</details>' +
         '<div class="btn-row" style="justify-content:center;margin-top:18px">' +
           '<button class="btn" onclick="window.__pc.startNewMatch()">Play Again</button>' +
         '</div>' +
@@ -999,6 +1003,8 @@
     setWicketsCustom: setWicketsCustom,
     setBattingOrderA: setBattingOrderA,
     setBattingOrderB: setBattingOrderB,
+    setScorecardOpen: setScorecardOpen,
+    setBallLogOpen: setBallLogOpen,
     flipCoin: flipCoin,
     chooseToss: chooseToss,
     bowlBall: bowlBall,
